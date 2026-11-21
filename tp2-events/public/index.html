@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP2 - Gestion d'événements universitaires</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Custom Scrollbar for Chatbox */
+        #chatbox::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #chatbox::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        #chatbox::-webkit-scrollbar-thumb {
+            background: #1e3a8a;
+            border-radius: 10px;
+        }
+
+        #chatbox {
+            scrollbar-width: thin;
+            scrollbar-color: #1e3a8a #f3f4f6;
+        }
+
+        /* Chatbot Transitions */
+        .chat-msg {
+            display: flex;
+            margin: 12px 0;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .chat-msg.user {
+            justify-content: flex-end;
+        }
+
+        .chat-bubble {
+            padding: 10px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-bubble.bot {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .chat-bubble.user {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .chat-icon {
+            font-size: 20px;
+        }
+
+        /* Map styling */
+        #map {
+            border-radius: 4px;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen font-sans">
+    <!-- TOP BAR (white) -->
+    <div class="bg-white text-xs py-2 px-6 flex justify-between items-center border-b border-gray-200">
+        <div class="flex items-center gap-3">
+            <img src="/images/téléchargement.png" alt="République Tunisienne" class="h-8">
+            <span class="leading-tight text-blue-900">
+                <strong>République Tunisienne</strong><br>
+                Ministère de l'Enseignement Supérieur et<br>
+                de la Recherche Scientifique
+            </span>
+        </div>
+        <div class="flex items-center gap-4 font-semibold text-gray-700">
+            <a href="#" class="hover:text-blue-900 transition">Accueil</a>
+            <a href="#" class="hover:text-blue-900 transition">Contact</a>
+            <a href="#" class="hover:text-blue-900 transition">✉ Connexion</a>
+            <a href="#" class="hover:text-blue-900 transition">✎ S'inscrire</a>
+        </div>
+    </div>
+
+    <!-- LOGO & SEARCH SECTION (white) -->
+    <div class="bg-white py-4 px-6 shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <!-- Logo ENIT + Title -->
+            <div class="flex items-center gap-4">
+                <img src="/images/LOGO_ENIT_300.png" alt="ENIT Logo" class="h-16 md:h-20">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-blue-900 leading-tight tracking-wide">
+                        ECOLE NATIONALE<br>D'INGÉNIEURS DE TUNIS
+                    </h1>
+                    <p class="text-sm italic text-blue-800 font-serif">L'école référence de Tunisie</p>
+                </div>
+            </div>
+
+            <!-- Search & UTM Logo -->
+            <div class="flex items-center gap-4">
+                <!-- Search Bar -->
+                <div class="flex border border-gray-300 rounded overflow-hidden">
+                    <input type="text" placeholder="Rechercher..."
+                        class="px-3 py-2 text-sm w-48 outline-none text-gray-600 bg-gray-50">
+                    <button class="bg-gray-100 px-3 text-gray-500 hover:text-blue-900 border-l border-gray-300">
+                        🔍
+                    </button>
+                </div>
+
+                <!-- Logo UTM -->
+                <img src="/images/2-2.png" alt="UTM Logo" class="h-14 md:h-16">
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR (dark blue) -->
+    <nav class="bg-blue-900 text-white text-sm font-bold shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <ul class="flex flex-wrap gap-6 py-3 justify-center md:justify-start">
+                <li><a href="#" class="hover:text-yellow-400 transition">L'ENIT ⌄</a></li>
+                <li><a href="#" class="hover:text-yellow-400 transition">ACTUALITÉS ⌄</a></li>
+                <li><a href="#" class="hover:text-yellow-400 transition">ÉVÉNEMENTS ⌄</a></li>
+                <li><a href="#" class="hover:text-yellow-400 transition">GALERIE ⌄</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
+
+        <h2 class="text-3xl font-bold text-blue-900 border-l-8 border-yellow-400 pl-4">Gestion d'Événements</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- LEFT COLUMN: FORM -->
+            <div class="lg:col-span-1 space-y-6">
+                <section class="bg-white p-6 shadow-md border-t-4 border-blue-900 overflow-hidden relative z-0">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span class="text-yellow-500">➕</span> Nouveau
+                    </h3>
+                    <form id="eventForm" class="space-y-3">
+                        <input type="text" id="titre" name="titre" required placeholder="Titre de l'événement"
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-900 outline-none">
+
+                        <input type="date" id="date" name="date" required
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-900 outline-none">
+
+                        <input type="text" id="lieu" name="lieu" required placeholder="Lieu (Ex: Amphi A)"
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-900 outline-none">
+
+                        <textarea id="description" name="description" rows="3" required placeholder="Description..."
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-900 outline-none"></textarea>
+
+                        <div class="relative">
+                            <input type="text" id="adresse" name="adresse" placeholder="Adresse pour carte"
+                                class="w-full px-3 py-2 border border-gray-300 focus:border-blue-900 outline-none pr-10">
+                            <button type="button" id="btnLocaliser" title="Localiser"
+                                class="absolute right-2 top-2 text-blue-900 hover:text-yellow-500">
+                                📍
+                            </button>
+                        </div>
+
+                        <div id="map" class="h-48 w-full border border-gray-300"></div>
+                        <p class="text-xs text-gray-500">Cliquez sur la carte pour affiner la position.</p>
+
+                        <button type="submit"
+                            class="w-full bg-blue-900 text-white font-bold py-2 hover:bg-blue-800 transition">
+                            ENREGISTRER
+                        </button>
+                    </form>
+                </section>
+
+                <!-- CHATBOT SECTION -->
+                <section class="bg-white p-6 shadow-md border-t-4 border-yellow-400">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 Assistant Virtuel</h3>
+                    <div id="chatbox" class="h-64 overflow-y-auto p-4 bg-gray-50 border border-gray-200 mb-3 text-sm">
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="question" placeholder="Posez une question..."
+                            class="flex-1 px-3 py-2 border border-gray-300 outline-none focus:border-blue-900">
+                        <button id="btnAskBot" class="bg-blue-900 text-white px-4 py-2 hover:bg-blue-800">➤</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: LIST -->
+            <div class="lg:col-span-2">
+                <section class="bg-white p-6 shadow-md border-t-4 border-blue-900 min-h-screen">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">📋 Événements à venir</h3>
+                    <ul id="eventsList" class="space-y-4">
+                        <!-- Events will be injected here -->
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-blue-900 text-white text-center py-6 mt-12 border-t-4 border-yellow-400">
+        <p class="text-sm">© 2024 Ecole Nationale d'Ingénieurs de Tunis. Tous droits réservés.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

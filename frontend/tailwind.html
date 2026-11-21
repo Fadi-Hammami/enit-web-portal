@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind DOC - Style ENIT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        enit: {
+                            blue: '#003366',
+                            gold: '#ffd700',
+                            light: '#f9fafb',
+                            gray: '#e5e7eb',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+        function selectImage(src) {
+            document.getElementById('mainImage').src = src;
+        }
+
+        // Javascript functions for Animation
+        function flipCard(card) {
+            const inner = card.querySelector('.flip-inner');
+            inner.style.transform = 'rotateY(180deg)';
+        }
+
+        function unflipCard(card) {
+            const inner = card.querySelector('.flip-inner');
+            inner.style.transform = 'rotateY(0deg)';
+        }
+
+        // Lightbox Functions
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = src;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+        }
+
+        // Authentication Functions
+        function toggleModal(id, show = true) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Fonction pour mettre à jour l'affichage de la barre d'auth
+        function updateAuthUI(user) {
+            const authContainer = document.getElementById('auth-container');
+            if (!authContainer) return;
+
+            if (user) {
+                const isAdmin = user.post !== undefined; // Dans votre base, seuls les admins ont un champ 'post'
+
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        ${isAdmin ? `
+                        <button onclick="goToProject2()" class="bg-enit-gold text-enit-blue px-3 py-1 rounded text-xs font-black uppercase flex items-center hover:bg-yellow-400 transition shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>Ajouter Événement
+                        </button>
+                        ` : ''}
+                        <div class="flex items-center text-enit-blue font-bold">
+                            <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                            ${user.prenom}
+                        </div>
+                        <button onclick="logout()" class="text-red-600 hover:text-red-800 transition flex items-center font-bold" title="Déconnexion">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>Quitter
+                        </button>
+                    </div>
+                `;
+            } else {
+                authContainer.innerHTML = `
+                    <a href="#" class="hover:underline">Accueil</a>
+                    <a href="#" class="hover:underline">Contact</a>
+                    <a href="javascript:void(0)" onclick="toggleModal('roleModal')"
+                        class="hover:underline flex items-center"><svg class="w-4 h-4 mr-1" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                            </path>
+                        </svg>Connexion</a>
+                    <a href="javascript:void(0)" onclick="toggleModal('registerModal')"
+                        class="hover:underline flex items-center"><svg class="w-4 h-4 mr-1" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+                            </path>
+                        </svg>S'inscrire</a>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('enit_user');
+            updateAuthUI(null);
+            location.reload();
+        }
+
+        function goToProject2() {
+            const savedUser = localStorage.getItem('enit_user');
+            const user = savedUser ? JSON.parse(savedUser) : null;
+            const url = user ? `http://localhost:3001?user=${user.prenom}` : 'http://localhost:3001';
+            window.open(url, '_blank');
+        }
+
+        // Au chargement de la page, vérifier si l'utilisateur est déjà connecté
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('enit_user');
+            if (savedUser) {
+                updateAuthUI(JSON.parse(savedUser));
+            }
+        });
+
+        let selectedRole = 'user';
+
+        function chooseRole(role) {
+            selectedRole = role;
+            toggleModal('roleModal', false);
+            toggleModal('loginModal', true);
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role: selectedRole })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Connexion réussie ! Bonjour ${data.user.prenom}`);
+                    toggleModal('loginModal', false);
+
+                    // Sauvegarder l'utilisateur dans le stockage local
+                    localStorage.setItem('enit_user', JSON.stringify(data.user));
+                    updateAuthUI(data.user);
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert("Erreur lors de la connexion. Vérifiez si le serveur est lancé.");
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const userData = {
+                nom: document.getElementById('regNom').value,
+                prenom: document.getElementById('regPrenom').value,
+                classe: document.getElementById('regClasse').value,
+                cin: document.getElementById('regCin').value,
+                telephone: document.getElementById('regTel').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    toggleModal('registerModal', false);
+                    toggleModal('loginModal', true);
+                    selectedRole = 'user';
+                } else {
+                    alert(data.error);
+                }
+            } catch (error) {
+                alert("Erreur lors de l'inscription.");
+            }
+        }
+    </script>
+    <style>
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        /* 3D Flip Animation Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        /* Marquee Animation */
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        .flip-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        /* Face arrière */
+        .flip-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- TOP BAR -->
+    <div class="bg-white border-b border-gray-200 py-2">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <img src="../image/téléchargement.png" alt="République Tunisienne" class="h-10 object-contain">
+                <div class="text-xs font-bold text-gray-600 leading-tight hidden md:block">
+                    République Tunisienne<br>
+                    Ministère de l’Enseignement Supérieur et<br>
+                    de la Recherche Scientifique
+                </div>
+            </div>
+            <div id="auth-container" class="flex space-x-4 text-sm font-bold text-enit-blue items-center">
+                <a href="#" class="hover:underline">Accueil</a>
+                <a href="#" class="hover:underline">Contact</a>
+                <a href="javascript:void(0)" onclick="toggleModal('roleModal')"
+                    class="hover:underline flex items-center"><svg class="w-4 h-4 mr-1" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                        </path>
+                    </svg>Connexion</a>
+                <a href="javascript:void(0)" onclick="toggleModal('registerModal')"
+                    class="hover:underline flex items-center"><svg class="w-4 h-4 mr-1" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+                        </path>
+                    </svg>S'inscrire</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-white py-4">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Left: ENIT Logo -->
+            <div class="flex items-center gap-4">
+                <img src="../image/LOGO_ENIT_300.png" alt="Logo ENIT" class="h-20 object-contain">
+                <div>
+                    <h1 class="text-2xl font-bold text-enit-blue uppercase leading-none">Ecole Nationale<br>d'Ingénieurs
+                        de Tunis</h1>
+                    <p class="text-sm text-enit-blue italic">L'école référence de Tunisie</p>
+                </div>
+            </div>
+
+            <!-- Right: Search & University Logo -->
+            <div class="flex flex-col items-end gap-4 w-full md:w-auto">
+                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                    <form class="flex items-center bg-gray-100 rounded px-2">
+                        <input type="text" placeholder="Rechercher..."
+                            class="bg-transparent border-none focus:outline-none text-sm py-2 px-2 w-48">
+                        <button class="text-gray-500 hover:text-enit-blue">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </form>
+                    <img src="../image/2-2.png" alt="Université de Tunis El Manar" class="h-16 object-contain">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-enit-blue text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <ul
+                class="flex flex-wrap items-center justify-center md:justify-start text-sm font-bold uppercase tracking-wide">
+                <li class="group relative">
+                    <a href="#enit" class="block py-4 px-4 hover:bg-blue-800 transition flex items-center">
+                        L'ENIT <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="group relative">
+                    <a href="#actualites" class="block py-4 px-4 hover:bg-blue-800 transition flex items-center">
+                        Actualités <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="group relative">
+                    <a href="#evenements" class="block py-4 px-4 hover:bg-blue-800 transition flex items-center">
+                        Événements <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="group relative">
+                    <a href="#galerie" class="block py-4 px-4 hover:bg-blue-800 transition flex items-center">
+                        Galerie <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- CONTENT FROM PREVIOUS SITE -->
+
+    <!-- Hero Section -->
+    <section id="enit" class="relative bg-enit-blue text-white py-16 scroll-mt-20">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <h2 class="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">École Nationale <br><span
+                        class="text-enit-gold">d'Ingénieurs de Tunis</span></h2>
+                <p class="text-blue-100 mb-8 max-w-2xl text-justify leading-relaxed">
+                    L’École Nationale d’Ingénieurs de Tunis (ENIT) est une grande école tunisienne qui forme des
+                    ingénieurs de haut niveau. Rattachée à l’Université de Tunis El Manar, elle est située sur le campus
+                    d’El Manar à Tunis. Fondée officiellement le 31 décembre 1968 par Mokhtar Latiri, l’ENIT est la plus
+                    ancienne école d’ingénieurs de Tunisie après l’Institut National Agronomique de Tunisie, créé en
+                    1898. Depuis 2017, elle délivre des diplômes nationaux d’ingénieur accrédités EUR-ACE Master pour
+                    une durée de six ans.
+                </p>
+                <div class="flex gap-4">
+                    <button
+                        class="bg-enit-gold text-enit-blue font-bold py-3 px-8 rounded hover:bg-yellow-400 transition shadow-lg transform hover:-translate-y-1">
+                        Explorer
+                    </button>
+                    <button
+                        class="border-2 border-white text-white font-bold py-3 px-8 rounded hover:bg-white hover:text-enit-blue transition transform hover:-translate-y-1">
+                        Documentation
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/2 relative">
+                <!-- Image ENIT -->
+                <div class="absolute -inset-1 bg-enit-gold rounded-lg blur opacity-30"></div>
+                <img src="../image/enit_cover.jpg" alt="ENIT Campus"
+                    class="relative rounded-lg shadow-2xl border-4 border-white w-full object-cover">
+            </div>
+        </div>
+    </section>
+
+    <!-- UTILITIES SECTION -->
+    <section id="actualites" class="py-16 bg-white scroll-mt-20">
+        <div class="container mx-auto px-4">
+            <h3 class="text-2xl font-bold text-enit-blue mb-8 border-l-4 border-enit-gold pl-4 uppercase">
+                Actualités
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Actu 1 -->
+                <div class="perspective-1000 w-full h-64 cursor-pointer" onmouseenter="flipCard(this)"
+                    onmouseleave="unflipCard(this)">
+                    <div class="flip-inner relative w-full h-full shadow-lg rounded-lg">
+                        <div class="absolute inset-0 backface-hidden">
+                            <img src="../image/sols_gonflants.jpg" class="w-full h-full object-cover rounded-lg"
+                                alt="Sols Gonflants">
+                        </div>
+                        <div
+                            class="absolute inset-0 backface-hidden flip-back bg-enit-blue text-white p-4 rounded-lg flex items-center justify-center text-center">
+                            <div>
+                                <h5 class="font-bold text-lg text-enit-gold">Journée Technique Les Sols Gonflants</h5>
+                                <p class="text-sm mt-2">Problématique, caractérisation et analyses de cas d’études en
+                                    Afrique du Nord</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actu 2 -->
+                <div class="perspective-1000 w-full h-64 cursor-pointer" onmouseenter="flipCard(this)"
+                    onmouseleave="unflipCard(this)">
+                    <div class="flip-inner relative w-full h-full shadow-lg rounded-lg">
+                        <div class="absolute inset-0 backface-hidden">
+                            <img src="../image/workshop.jpg" class="w-full h-full object-cover rounded-lg"
+                                alt="Workshop">
+                        </div>
+                        <div
+                            class="absolute inset-0 backface-hidden flip-back bg-enit-blue text-white p-4 rounded-lg flex items-center justify-center text-center">
+                            <div>
+                                <h5 class="font-bold text-lg text-enit-gold">Workshop on INTEGRATED GROUNDWATER
+                                    MODELLING</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actu 3 -->
+                <div class="perspective-1000 w-full h-64 cursor-pointer" onmouseenter="flipCard(this)"
+                    onmouseleave="unflipCard(this)">
+                    <div class="flip-inner relative w-full h-full shadow-lg rounded-lg">
+                        <div class="absolute inset-0 backface-hidden">
+                            <img src="../image/rattrapage.png" class="w-full h-full object-cover rounded-lg"
+                                alt="Rattrapage">
+                        </div>
+                        <div
+                            class="absolute inset-0 backface-hidden flip-back bg-enit-blue text-white p-4 rounded-lg flex items-center justify-center text-center">
+                            <div>
+                                <h5 class="font-bold text-lg text-enit-gold">Session de Rattrapage 2025-2026</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- GALLERY SECTION UPDATE -->
+    <section id="evenements" class="py-16 bg-gray-50 scroll-mt-20">
+        <div class="container mx-auto px-4">
+            <h3 class="text-2xl font-bold text-enit-blue mb-8 border-l-4 border-enit-gold pl-4 uppercase">
+                Nos Événements
+            </h3>
+
+            <!-- Animated Grid with Javascript Control -->
+            <div id="events-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Les événements seront chargés ici par JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Fonction pour charger les événements depuis le backend
+        fetch('http://localhost:3000/api/events')
+            .then(response => response.json())
+            .then(data => {
+                const grid = document.getElementById('events-grid');
+                grid.innerHTML = data.map(event => `
+                    <div class="perspective-1000 w-full h-48 md:h-64 cursor-pointer" onmouseenter="flipCard(this)" onmouseleave="unflipCard(this)">
+                        <div class="flip-inner relative w-full h-full shadow-lg rounded-lg">
+                            <div class="absolute inset-0 backface-hidden">
+                                <img src="${event.image_url}" class="w-full h-full object-cover rounded-lg" alt="${event.title}">
+                            </div>
+                            <div class="absolute inset-0 backface-hidden flip-back bg-enit-blue text-white p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                                <h5 class="font-bold text-sm md:text-lg text-enit-gold mb-2">${event.title}</h5>
+                                <p class="text-xs md:text-sm line-clamp-4">${event.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => console.error('Erreur lors du chargement des événements:', error));
+    </script>
+
+    <!-- GALERIE SCROLLING SECTION -->
+    <section id="galerie" class="py-16 bg-white overflow-hidden">
+        <div class="container mx-auto px-4 mb-8">
+            <h3 class="text-2xl font-bold text-enit-blue border-l-4 border-enit-gold pl-4 uppercase">
+                Galerie
+            </h3>
+        </div>
+
+        <!-- Marquee Container -->
+        <div class="relative w-full overflow-hidden">
+            <div class="flex animate-marquee space-x-6 w-max">
+                <!-- Set 1 -->
+                <img onclick="openLightbox(this.src)" src="../image/1.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 1">
+                <img onclick="openLightbox(this.src)" src="../image/2.png"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 2">
+                <img onclick="openLightbox(this.src)" src="../image/3.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 3">
+                <img onclick="openLightbox(this.src)" src="../image/4.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 4">
+                <img onclick="openLightbox(this.src)" src="../image/5.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 5">
+                <img onclick="openLightbox(this.src)" src="../image/6.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 6">
+                <!-- Duplicate Set for Smooth Loop -->
+                <img onclick="openLightbox(this.src)" src="../image/1.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 1">
+                <img onclick="openLightbox(this.src)" src="../image/2.png"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 2">
+                <img onclick="openLightbox(this.src)" src="../image/3.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 3">
+                <img onclick="openLightbox(this.src)" src="../image/4.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 4">
+                <img onclick="openLightbox(this.src)" src="../image/5.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 5">
+                <img onclick="openLightbox(this.src)" src="../image/6.jpg"
+                    class="h-48 md:h-64 rounded-lg cursor-pointer hover:opacity-90 transition shadow-md object-cover"
+                    alt="Galerie 6">
+            </div>
+        </div>
+    </section>
+
+    <!-- LIGHTBOX MODAL -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black bg-opacity-95 hidden justify-center items-center">
+        <button onclick="closeLightbox()"
+            class="absolute top-4 left-4 text-white hover:text-enit-gold transition focus:outline-none">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <img id="lightbox-img" src=""
+            class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl border-2 border-white">
+    </div>
+
+    <!-- AUTH MODALS -->
+    <!-- 1. Role Choice Modal -->
+    <div id="roleModal" class="fixed inset-0 z-[110] bg-black bg-opacity-75 hidden justify-center items-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-96 relative">
+            <button onclick="toggleModal('roleModal', false)"
+                class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+            <h2 class="text-xl font-bold text-enit-blue mb-6 text-center">Vous êtes :</h2>
+            <div class="space-y-4">
+                <label class="flex items-center p-4 border rounded hover:bg-gray-50 cursor-pointer">
+                    <input type="radio" name="roleSelect" value="user" checked class="w-4 h-4 text-enit-blue mr-3"
+                        onchange="selectedRole='user'">
+                    <span class="font-medium">Simple Utilisateur</span>
+                </label>
+                <label class="flex items-center p-4 border rounded hover:bg-gray-50 cursor-pointer">
+                    <input type="radio" name="roleSelect" value="admin" class="w-4 h-4 text-enit-blue mr-3"
+                        onchange="selectedRole='admin'">
+                    <span class="font-medium">Administrateur</span>
+                </label>
+            </div>
+            <button onclick="chooseRole(selectedRole)"
+                class="w-full mt-6 bg-enit-blue text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition">Continuer</button>
+        </div>
+    </div>
+
+    <!-- 2. Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-[110] bg-black bg-opacity-75 hidden justify-center items-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-96 relative">
+            <button onclick="toggleModal('loginModal', false)"
+                class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+            <h2 class="text-xl font-bold text-enit-blue mb-6 text-center">Connexion</h2>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="email" id="loginEmail" placeholder="Email" required
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-enit-blue">
+                <input type="password" id="loginPassword" placeholder="Mot de passe" required
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-enit-blue">
+                <button type="submit"
+                    class="w-full bg-enit-blue text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition">Se
+                    connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Register Modal -->
+    <div id="registerModal" class="fixed inset-0 z-[110] bg-black bg-opacity-75 hidden justify-center items-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative overflow-y-auto max-h-[90vh]">
+            <button onclick="toggleModal('registerModal', false)"
+                class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+            <h2 class="text-xl font-bold text-enit-blue mb-6 text-center">S'inscrire (Simple Utilisateur)</h2>
+            <form onsubmit="handleRegister(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="regNom" placeholder="Nom" required class="p-3 border rounded-lg">
+                    <input type="text" id="regPrenom" placeholder="Prénom" required class="p-3 border rounded-lg">
+                </div>
+                <input type="text" id="regClasse" placeholder="Classe (ex: 2B)" required
+                    class="w-full p-3 border rounded-lg">
+                <input type="text" id="regCin" placeholder="CIN" required maxlength="8"
+                    class="w-full p-3 border rounded-lg">
+                <input type="tel" id="regTel" placeholder="Numéro Téléphone" required
+                    class="w-full p-3 border rounded-lg">
+                <input type="email" id="regEmail" placeholder="Adresse Email" required
+                    class="w-full p-3 border rounded-lg">
+                <input type="password" id="regPassword" placeholder="Mot de passe" required
+                    class="w-full p-3 border rounded-lg">
+                <button type="submit"
+                    class="w-full bg-enit-gold text-enit-blue py-3 rounded-lg font-bold hover:bg-yellow-400 transition shadow-md">S'inscrire</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-enit-blue text-white py-12">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+            <div>
+                <h4 class="font-bold text-lg mb-4 text-enit-gold uppercase">Contact</h4>
+                <p>BP 37, Le Belvédère 1002 Tunis</p>
+                <p class="mt-2">Tél: 71 874 700</p>
+                <p>Fax: 71 872 729</p>
+            </div>
+            <div>
+                <h4 class="font-bold text-lg mb-4 text-enit-gold uppercase">Liens Utiles</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white text-blue-200 transition">Université de Tunis El Manar</a>
+                    </li>
+                    <li><a href="#" class="hover:text-white text-blue-200 transition">Ministère de l'ESRS</a></li>
+                    <li><a href="#" class="hover:text-white text-blue-200 transition">Assurance Qualité</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-lg mb-4 text-enit-gold uppercase">À propos</h4>
+                <p class="text-blue-200">
+                    L'ENIT forme l'élite des ingénieurs tunisiens depuis sa création. Excellence, Rigueur et Innovation.
+                </p>
+            </div>
+        </div>
+        <div class="container mx-auto px-4 mt-8 pt-8 border-t border-blue-900 text-center text-blue-300 text-xs">
+            © 2026 Ecole Nationale d'Ingénieurs de Tunis. Tous droits réservés.
+        </div>
+    </footer>
+
+</body>
+
+</html>

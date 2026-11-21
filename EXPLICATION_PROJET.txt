@@ -1,0 +1,72 @@
+# RÉSUMÉ TECHNIQUE COMPLET : ÉCOSYSTÈME WEB ENIT (FULL STACK)
+
+Ce document détaille l'architecture et le fonctionnement technique de l'écosystème web développé pour l'ENIT. Ce projet est une application **Full Stack** complexe composée de deux projets interconnectés, gérant l'authentification, la persistance des données et la synchronisation multi-bases.
+
+---
+
+## 1. ARCHITECTURE GLOBALE DU SYSTÈME
+
+Le projet repose sur une architecture **Client-Serveur** distribuée :
+
+[ DB MySQL : enit_db ] <---+      [ PROJET 1 : Portail Public ] <--- (Visualisation & Connexion)
+                           |               ^
+                           +-----> [ SERVEUR BACKEND (Node.js) ]
+                           |               v
+[ DB MySQL : tp2_events ] <+      [ PROJET 2 : Module Admin ] <--- (Gestion & Synchronisation)
+
+### Termes Techniques Clés :
+*   **API REST** : Interface de communication entre le client (navigateur) et le serveur.
+*   **CRUD** : Opérations de base sur les données (Create, Read, Update, Delete).
+*   **Persistence** : Capacité des données à survivre après la fermeture du site.
+
+---
+
+## 2. COMPOSANTS DU BACKEND (LE MOTEUR)
+
+Le dossier `backend` contient le cœur logique de l'application (`server.js`).
+
+*   **Technologie** : Node.js avec le framework **Express.js**.
+*   **Gestion Multi-Bases** : Le serveur établit des connexions simultanées vers `enit_db` (données du portail) et `tp2_events` (données du module admin).
+*   **Routes d'Authentification** : 
+    *   Gestion de deux rôles : `Admin` (accès complet) et `Simple User` (visualisation).
+    *   Séparation des données dans les tables `admins` et `users`.
+*   **Dual-Database Synchronization** : Le serveur expose un point de terminaison (**Endpoint**) `POST /api/add-event-dual`. Lorsqu'un événement est ajouté dans le module Admin, le serveur l'écrit automatiquement dans les deux bases de données pour garantir que le Portail Public est à jour en temps réel.
+
+---
+
+## 3. LES FRONTENDS (LES INTERFACES)
+
+### A. Projet 1 : Portail ENIT (`frontend/tailwind.html`)
+*   **Design** : Utilisation de **Tailwind CSS** pour une interface moderne, fluide et responsive.
+*   **Dynamisme** : Utilisation de la **Fetch API** pour récupérer les données JSON du serveur sans recharger la page.
+*   **État de Session** : Le **LocalStorage** est utilisé pour conserver le prénom de l'utilisateur connecté même après un rafraîchissement de la page (**Persistance de Session**).
+
+### B. Projet 2 : Module Admin & Cartographie (`tp2-events`)
+*   **Spécificités** : Module spécialisé pour l'ajout d'événements complexes.
+*   **Géolocalisation** : Intégration de la bibliothèque **Leaflet.js** pour placer des événements sur une carte interactive (OpenStreetMap).
+*   **Chatbot Intelligent** : Assistant virtuel intégré permettant d'interroger la base de données via des questions textuelles.
+
+---
+
+## 4. FLUX DE SYNCHRONISATION ENTRE PROJETS
+
+L'expérience utilisateur est synchronisée entre les deux domaines (localhost:3000 et localhost:3001) :
+
+1.  **Transmission d'État** : Lorsqu'un Admin change de projet, son profil est transmis via des **Query Parameters** (`?user=Prenom`) pour maintenir l'identité visuelle.
+2.  **Partage d'Identité** : Les deux sites partagent une logique de barre de navigation identique, affichant le prénom et un bouton de déconnexion synchronisé.
+3.  **Propagation de Données** : Toute action sur le Projet 2 (Admin) se répercute par un appel API vers le Projet 1, assurant l'intégrité des données dans tout l'écosystème.
+
+---
+
+## 5. RÉSUMÉ DES TECHNOLOGIES UTILISÉES
+
+| Couche | Technologies |
+| :--- | :--- |
+| **Frontend** | HTML5, JavaScript (ES6+), Tailwind CSS, Leaflet.js |
+| **Backend** | Node.js, Express.js, Multer (Upload), Cors |
+| **Database** | MySQL (Relational Database Management System) |
+| **Communication** | Protocole HTTP, Format JSON |
+| **Stockage Client** | LocalStorage API |
+
+---
+*Ce projet démontre une maîtrise complète du cycle de développement Full Stack, de la conception de schémas de base de données relationnels à la création d'interfaces utilisateurs dynamiques et synchronisées.*

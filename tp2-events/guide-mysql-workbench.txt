@@ -1,0 +1,150 @@
+============================================================
+  GUIDE : Configuration MySQL Workbench pour TP2-Events
+============================================================
+
+PRÉREQUIS :
+- MySQL Server installé et en cours d'exécution
+- MySQL Workbench installé
+
+
+============================================================
+ÉTAPE 1 : OUVRIR MySQL WORKBENCH
+============================================================
+
+1. Lancez MySQL Workbench depuis le menu Démarrer
+2. Sur l'écran d'accueil, vous verrez la section "MySQL Connections"
+3. Cliquez sur la connexion existante "Local instance MySQL" 
+   (ou créez-en une nouvelle, voir étape 2)
+
+
+============================================================
+ÉTAPE 2 : CRÉER UNE CONNEXION (si elle n'existe pas)
+============================================================
+
+1. Cliquez sur le bouton [+] à côté de "MySQL Connections"
+2. Remplissez les champs suivants :
+   - Connection Name   : mysql@localhost
+   - Hostname          : 127.0.0.1
+   - Port              : 3306
+   - Username          : root
+3. Cliquez sur "Store in Vault..." et entrez le mot de passe : mysql
+4. Cliquez sur "Test Connection" pour vérifier
+5. Si le test réussit, cliquez "OK" pour sauvegarder
+6. Double-cliquez sur la connexion pour l'ouvrir
+
+
+============================================================
+ÉTAPE 3 : CRÉER LA BASE DE DONNÉES
+============================================================
+
+Dans l'éditeur SQL (la zone blanche au centre), copiez-collez
+le code suivant puis cliquez sur l'icône éclair ⚡ (ou Ctrl+Shift+Enter)
+pour exécuter :
+
+    CREATE DATABASE IF NOT EXISTS tp2_events;
+    USE tp2_events;
+
+Vérification : Dans le panneau gauche "SCHEMAS", faites un clic droit
+puis "Refresh All". Vous devez voir "tp2_events" apparaître.
+
+
+============================================================
+ÉTAPE 4 : CRÉER LA TABLE "events"
+============================================================
+
+Copiez-collez et exécutez ce code SQL (⚡ ou Ctrl+Shift+Enter) :
+
+    USE tp2_events;
+
+    CREATE TABLE IF NOT EXISTS events (
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        titre       VARCHAR(255) NOT NULL,
+        date        DATE NOT NULL,
+        lieu        VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        adresse     VARCHAR(500),
+        lat         DECIMAL(10, 6),
+        lng         DECIMAL(10, 6),
+        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+Vérification : Dépliez "tp2_events" > "Tables" dans le panneau
+gauche. Vous devez voir la table "events".
+
+
+============================================================
+ÉTAPE 5 : VÉRIFIER LA TABLE
+============================================================
+
+Exécutez cette requête pour voir la structure :
+
+    DESCRIBE events;
+
+Vous devez voir les colonnes : id, titre, date, lieu, description,
+adresse, lat, lng, created_at.
+
+
+============================================================
+ÉTAPE 6 : LANCER LE SERVEUR NODE.JS
+============================================================
+
+1. Ouvrez un terminal (cmd ou PowerShell)
+2. Naviguez vers le dossier du projet :
+   
+       cd C:\Users\LOQ\tp2-events
+
+3. Lancez le serveur :
+   
+       node server.js
+
+4. Vous devez voir :
+   
+       Server is running on http://localhost:3000
+       ✅ Connecté à la base de données MySQL
+
+5. Ouvrez votre navigateur : http://localhost:3000
+
+
+============================================================
+ÉTAPE 7 : TESTER L'AJOUT D'UN ÉVÉNEMENT
+============================================================
+
+1. Remplissez le formulaire sur le site et cliquez "ENREGISTRER"
+2. Pour vérifier dans MySQL Workbench, exécutez :
+
+       SELECT * FROM tp2_events.events;
+
+   Vous verrez les événements enregistrés dans la table.
+
+
+============================================================
+COMMANDES SQL UTILES
+============================================================
+
+-- Voir tous les événements :
+SELECT * FROM tp2_events.events;
+
+-- Voir le nombre d'événements :
+SELECT COUNT(*) FROM tp2_events.events;
+
+-- Supprimer un événement par ID :
+DELETE FROM tp2_events.events WHERE id = 1;
+
+-- Vider toute la table :
+TRUNCATE TABLE tp2_events.events;
+
+-- Supprimer la base de données :
+DROP DATABASE tp2_events;
+
+
+============================================================
+INFORMATIONS DE CONNEXION (utilisées dans server.js)
+============================================================
+
+  Host     : localhost
+  User     : root
+  Password : mysql
+  Database : tp2_events
+  Port     : 3306
+
+============================================================
